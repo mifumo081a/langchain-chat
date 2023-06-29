@@ -1,0 +1,37 @@
+# Jupyter environments
+jupyterlab==3.6.1
+ipywidgets==8.0.4
+
+# Main routine environments
+torch==1.13.1+cpu
+torchvision==0.14.1+cpu
+torchaudio==0.13.1+cpu
+torchinfo==1.7.2
+optuna==3.1.0
+numpy==1.24.2
+matplotlib==3.7.1
+pandas==1.5.3
+seaborn==0.12.2
+scikit-learn==1.2.1
+streamlit==1.19.0
+altair<5
+tqdm==4.65.0
+Pillow==9.4.0
+opencv-python==4.7.0.72
+openpyxl==3.0.10
+plotly==5.9.0
+japanize-matplotlib
+
+# GPT
+transformers
+sentencepiece
+sentence_transformers
+accelerate
+langchain
+streamlit-chat
+openai
+python-dotenv
+chromadb
+
+# PDF loader
+pymupdf
