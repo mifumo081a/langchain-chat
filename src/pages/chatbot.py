@@ -33,6 +33,9 @@ en_list = [
         "cerebras/Cerebras-GPT-590M",
         "cerebras/Cerebras-GPT-1.3B",
         "vicgalle/gpt2-alpaca",
+        # "RWKV/rwkv-4-169m-pile",
+        # "RWKV/rwkv-4-430m-pile",
+        "RWKV/rwkv-raven-1b5",
 ]
 ja_list = [
         # "cyberagent/open-calm-small",
@@ -109,7 +112,7 @@ def chatbot():
         (
             *tuple(en_list),
             *tuple(ja_list),
-            # chatgpt_id
+            chatgpt_id
         )
     )
 

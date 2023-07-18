@@ -24,17 +24,18 @@ en_list = [
         "bigscience/bloomz-560m",
         "bigscience/bloomz-1b7",
         # "gpt2",
-        "gpt2-medium",
-        "gpt2-large",
-        "gpt2-xl",
+        # "gpt2-medium",
+        # "gpt2-large",
+        # "gpt2-xl",
         # "facebook/opt-125m",
-        "facebook/opt-350m",
-        "facebook/opt-1.3b",
+        # "facebook/opt-350m",
+        # "facebook/opt-1.3b",
         # "cerebras/Cerebras-GPT-111M",
-        "cerebras/Cerebras-GPT-256M",
-        "cerebras/Cerebras-GPT-590M",
-        "cerebras/Cerebras-GPT-1.3B",
-        "vicgalle/gpt2-alpaca",
+        # "cerebras/Cerebras-GPT-256M",
+        # "cerebras/Cerebras-GPT-590M",
+        # "cerebras/Cerebras-GPT-1.3B",
+        # "vicgalle/gpt2-alpaca",
+        # "RWKV/rwkv-raven-1b5",
 ]
 ja_list = [
         # "cyberagent/open-calm-small",
@@ -43,10 +44,10 @@ ja_list = [
         "cyberagent/open-calm-1b",
         # "rinna/japanese-gpt2-xsmall",
         # "rinna/japanese-gpt2-small",
-        "rinna/japanese-gpt2-medium",
+        # "rinna/japanese-gpt2-medium",
         # "rinna/japanese-gpt-1b",
-        "rinna/japanese-gpt-neox-small",
-        "abeja/gpt2-large-japanese",
+        # "rinna/japanese-gpt-neox-small",
+        # "abeja/gpt2-large-japanese",
         # "abeja/gpt-neox-japanese-2.7b",
 ]
 
@@ -74,10 +75,8 @@ def get_llm(model_id, model_kwargs, pipeline_kwargs):
 def get_embeddings(model_id):
     if model_id == chatgpt_id:
         return OpenAIEmbeddings()
-    # elif model_id in ja_list:
-    #     return HuggingFaceEmbeddings(model_name="oshizo/sbert-jsnli-luke-japanese-base-lite")
     else:
-        return HuggingFaceEmbeddings()
+        return HuggingFaceEmbeddings(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 
 def chatpdf():
     st.title("ChatPDF :memo::robot_face::left_speech_bubble:")
@@ -89,7 +88,7 @@ def chatpdf():
         (
             *tuple(en_list),
             *tuple(ja_list),
-            # chatgpt_id
+            chatgpt_id
         )
     )
     
@@ -134,27 +133,29 @@ def chatpdf():
         llm = get_llm(model_id, model_kwargs, pipeline_kwargs)
     
     st.header("Upload a PDF file.")
-    uploaded_file = st.file_uploader("Choose a file", "pdf")
-    if uploaded_file is not None:
-        doc = fitz.open(stream=uploaded_file.read(), filetype="pdf")
-        
-        docs = [
-                    Document(
-                        page_content=page.get_text().encode("utf-8"),
-                        metadata=dict(
-                            {
-                                "page_number": page.number + 1,
-                                "total_pages": len(doc),
-                            },
-                            **{
-                                k: doc.metadata[k]
-                                for k in doc.metadata
-                                if type(doc.metadata[k]) in [str, int]
-                            },
-                        ),
-                    )
-                    for page in doc
-                ]
+    uploaded_files = st.file_uploader("Choose a file", "pdf", True)
+    if uploaded_files is not None:
+        docs = []
+        for ufile in uploaded_files:
+            doc = fitz.open(stream=ufile.read(), filetype="pdf")
+
+            docs.extend([
+                        Document(
+                            page_content=page.get_text().replace("\n", "").encode("utf-8"),
+                            metadata=dict(
+                                {
+                                    "page_number": page.number + 1,
+                                    "total_pages": len(doc),
+                                },
+                                **{
+                                    k: doc.metadata[k]
+                                    for k in doc.metadata
+                                    if type(doc.metadata[k]) in [str, int]
+                                },
+                            ),
+                        )
+                        for page in doc
+                    ])
             
         text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
         texts = text_splitter.split_documents(docs)
@@ -163,7 +164,7 @@ def chatpdf():
         embeddings = get_embeddings(model_id)
         vectordb = Chroma.from_documents(texts, embeddings)
         
-        qa_chain = pdf_qa = ConversationalRetrievalChain.from_llm(llm, vectordb.as_retriever(), return_source_documents=True)
+        qa_chain = ConversationalRetrievalChain.from_llm(llm, vectordb.as_retriever(), return_source_documents=True)
         
         st.header("Let's chat!!")
         left, right = st.columns([8, 2])
